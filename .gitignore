@@ -4,3 +4,10 @@ __pycache__/
 *.pyc
 .mypy_cache/
 .pytest_cache/
+
+/data/uploaded_files/
+/backend/data/*
+/qdrant_storage/
+
+.env*
+!.env.example

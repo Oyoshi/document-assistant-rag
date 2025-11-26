@@ -1,7 +1,4 @@
 repos:
-  # -----------------------------------------------------------------
-  # PYTHON (BACKEND)
-  # -----------------------------------------------------------------
   - repo: https://github.com/psf/black
     rev: 24.3.0
     hooks:
@@ -29,9 +26,6 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  # -----------------------------------------------------------------
-  # JAVASCRIPT/TYPESCRIPT (FRONTEND)
-  # -----------------------------------------------------------------
   - repo: local
     hooks:
       - id: lint-frontend
