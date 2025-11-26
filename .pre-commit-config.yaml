@@ -1,0 +1,42 @@
+repos:
+  # -----------------------------------------------------------------
+  # PYTHON (BACKEND)
+  # -----------------------------------------------------------------
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        files: ^backend/
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        files: ^backend/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.9.0
+    hooks:
+      - id: mypy
+        files: ^backend/
+        additional_dependencies: [types-requests]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+        exclude: ^frontend/
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # -----------------------------------------------------------------
+  # JAVASCRIPT/TYPESCRIPT (FRONTEND)
+  # -----------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: lint-frontend
+        name: ESLint and Prettier
+        entry: npm run lint:staged --prefix frontend
+        language: system
+        files: '^(frontend|frontend/.*)\.(js|jsx|ts|tsx|json|css|md)$'
+        pass_filenames: false
