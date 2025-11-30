@@ -1,16 +1,117 @@
-from fastapi import FastAPI
+import os
+from pathlib import Path
+
+from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from logic.document_loader import load_and_split_document
+from logic.logging_config import setup_logging
+from logic.models import (
+    APIResponse,
+    DocumentUploadResponse,
+    QueryRequest,
+    QueryResponse,
+)
+from logic.vector_store import store_documents_in_qdrant
+
+logger = setup_logging(__name__)
+
+
+UPLOAD_DIR = Path("/app/data/uploaded_files")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 app = FastAPI(
-    title="Asystent Dokumentacji RAG API",
+    title="Document Assistant RAG API",
+    description="API to generate responses using RAG on uploaded pdf docs.",
     version="0.1.0",
 )
 
 
-@app.get("/")
+@app.get("/", response_model=APIResponse)
 def read_root():
-    return {"message": "FastAPI is running."}
+    logger.info("Root")
+
+    return APIResponse(status="success", message="Service is active.")
 
 
-@app.get("/health")
+@app.get("/health", response_model=APIResponse)
 def health_check():
-    return {"status": "ok"}
+    logger.debug("Health check")
+
+    return APIResponse(status="success", message="Service is active.")
+
+
+@app.post(
+    "/upload",
+    response_model=DocumentUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_document(file: UploadFile = File(...)):
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        logger.warning(f"File {file.filename} has not valid extension (*.pdf)")
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF files are supported.",
+        )
+
+    file_path = UPLOAD_DIR / file.filename
+    count = 0
+
+    try:
+        logger.info(f"Saving a file: {file.filename} to {file_path}")
+        with open(file_path, "wb") as buffer:
+            # Async read if files are big
+            while content := await file.read(1024 * 1024):
+                buffer.write(content)
+        chunks = load_and_split_document(str(file_path))
+        count = store_documents_in_qdrant(chunks)
+        logger.info(f"Succesfully proceed {file.filename} and stored {count} vectors")
+
+    except RuntimeError as e:
+        # Error thrown by our own implementation from methods above
+        logger.error(
+            f"Critical error while uploading and processing file {file.filename}: {e}",
+            exc_info=True,
+        )
+        # remove uploaded file in case of error
+        if file_path.exists():
+            os.remove(file_path)
+            logger.info(f"File {file.filename} removed due to processing error")
+        detail_msg = f"Processing error: {e.args[0]}"
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail_msg
+        )
+
+    except Exception as e:
+        # General error handling like (I/O errors, Qdrant db connection malfunction etc)
+        logger.error(
+            f"Critical error while uploading and processing file {file.filename}: {e}",
+            exc_info=True,
+        )
+        # remove uploaded file in case of error
+        if file_path.exists():
+            os.remove(file_path)
+            logger.info(f"File {file.filename} removed due to processing error")
+        detail_msg = f"Unexpected error while uploading processing the file: {e}"
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail_msg
+        )
+
+    return DocumentUploadResponse(
+        status="success",
+        message=f"Document proceed and {count} chunks are stored in Qdrant database.",
+        filename=file.filename,
+        chunks_count=count,
+    )
+
+
+@app.post("/query", response_model=QueryResponse)
+def handle_query(request: QueryRequest):
+    logger.info(f"RAG request: {request.query[:50]}...")
+    # Response placeholder
+    return QueryResponse(
+        status="success",
+        message="Request proceed successfully.",
+        answer="Placeholder.",
+        source_count=0,
+    )
