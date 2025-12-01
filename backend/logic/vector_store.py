@@ -5,6 +5,7 @@ from langchain_community.vectorstores import Qdrant
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from logic.logging_config import setup_logging
+from qdrant_client import QdrantClient
 
 logger = setup_logging(__name__)
 
@@ -16,12 +17,20 @@ COLLECTION_NAME = "rag_documents_collection"
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 
+def get_qdrant_client():
+    # Używamy portu gRPC (6334)
+    return QdrantClient(
+        host=QDRANT_HOST, port=int(QDRANT_PORT), prefer_grpc=True, timeout=10
+    )
+
+
 def get_vector_store():
-    vector_store = Qdrant.from_existing_collection(
-        embedding=embeddings,
+    client = get_qdrant_client()
+
+    vector_store = Qdrant(
+        client=client,
+        embeddings=embeddings,
         collection_name=COLLECTION_NAME,
-        url=f"http://{QDRANT_HOST}:{QDRANT_PORT}",
-        prefer_grpc=True,
     )
     return vector_store
 
@@ -33,6 +42,8 @@ def store_documents_in_qdrant(
         logger.warning("No chunks which can be stored in Qdrant")
         return 0
 
+    client = get_qdrant_client()
+
     # Qdrant.from_documents is responsible for 3 things here:
     # 1. Generate vectors via 'embeddings' object
     # 2. Create new collection (or reusing old one if exists - force_recreate is falsy for this reason)
@@ -40,7 +51,7 @@ def store_documents_in_qdrant(
     Qdrant.from_documents(
         chunks,
         embeddings,
-        url=f"http://{QDRANT_HOST}:{QDRANT_PORT}",
+        client=client,
         collection_name=collection_name,
         force_recreate=False,
     )

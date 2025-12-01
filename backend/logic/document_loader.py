@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -10,6 +11,14 @@ logger = setup_logging(__name__)
 
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
+
+UPLOAD_DIR_PATH = "/app/data/uploaded_files"
+
+
+def setup_upload_dir():
+    upload_dir = Path(UPLOAD_DIR_PATH)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    return upload_dir
 
 
 def load_and_split_document(file_path: str) -> List[Document]:

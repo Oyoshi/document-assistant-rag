@@ -1,23 +1,22 @@
 import os
-from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile, status
-from logic.document_loader import load_and_split_document
+from logic.document_loader import load_and_split_document, setup_upload_dir
 from logic.logging_config import setup_logging
 from logic.models import (
     APIResponse,
     DocumentUploadResponse,
     QueryRequest,
     QueryResponse,
+    SourceDetail,
 )
+from logic.rag_chain import setup_rag_chain
 from logic.vector_store import store_documents_in_qdrant
 
+# App setup part
 logger = setup_logging(__name__)
-
-
-UPLOAD_DIR = Path("/app/data/uploaded_files")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
+upload_dir = setup_upload_dir()
+rag_chain, retriever = setup_rag_chain()
 
 app = FastAPI(
     title="Document Assistant RAG API",
@@ -54,7 +53,7 @@ async def upload_document(file: UploadFile = File(...)):
             detail="Only PDF files are supported.",
         )
 
-    file_path = UPLOAD_DIR / file.filename
+    file_path = upload_dir / file.filename
     count = 0
 
     try:
@@ -107,11 +106,47 @@ async def upload_document(file: UploadFile = File(...)):
 
 @app.post("/query", response_model=QueryResponse)
 def handle_query(request: QueryRequest):
-    logger.info(f"RAG request: {request.query[:50]}...")
-    # Response placeholder
-    return QueryResponse(
-        status="success",
-        message="Request proceed successfully.",
-        answer="Placeholder.",
-        source_count=0,
-    )
+    if rag_chain is None:
+        logger.error(
+            "RAG chain has not been initialized correctly on startup - Qdrant or OpenAI connection failed"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="RAG service is currently unavailable. Check Qdrant and OpenAI connections.",
+        )
+    logger.info(f"RAG request received: {request.query[:50]}...")
+
+    try:
+        response = rag_chain.invoke(request.query)
+        sources_list = []
+        for doc in response.get("context", []):
+            metadata = doc.metadata
+            file_name = metadata.get("source", "N/A").split("/")[-1]
+            page_number = metadata.get("page", None)
+            sources_list.append(
+                SourceDetail(
+                    file=file_name,
+                    page=page_number if isinstance(page_number, int) else None,
+                    chunk_content=doc.page_content,
+                )
+            )
+        source_count = len(sources_list)
+        logger.info(f"Generated answer successfully - Used {source_count} sources")
+
+        return QueryResponse(
+            status="success",
+            message="RAG query processed successfully.",
+            answer=response["answer"],
+            source_count=source_count,
+            sources=sources_list,
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Error while processing RAG query for '{request.query[:50]}...': {e}",
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred during RAG response generation: {e}",
+        )

@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -24,6 +26,16 @@ class QueryRequest(BaseModel):
     )
 
 
+class SourceDetail(BaseModel):
+    file: str = Field(
+        ..., example="financial_statement_2025.pdf", description="Source filename."
+    )
+    page: Optional[int] = Field(
+        None, example=4, description="Page number in the doc (if available)."
+    )
+    chunk_content: str = Field(..., description="Text fragment used as a context.")
+
+
 class QueryResponse(APIResponse):
     answer: str = Field(
         ...,
@@ -34,4 +46,8 @@ class QueryResponse(APIResponse):
         ...,
         example=3,
         description="Sources count (docs/fragments) used to generate an answer.",
+    )
+    sources: List[SourceDetail] = Field(
+        ...,
+        description="Details list of context sources (quotes).",
     )
