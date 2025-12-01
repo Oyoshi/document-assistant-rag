@@ -11,7 +11,7 @@ from logic.models import (
     SourceDetail,
 )
 from logic.rag_chain import setup_rag_chain
-from logic.vector_store import store_documents_in_qdrant
+from logic.vector_store import get_qdrant_client, store_documents_in_qdrant
 
 # App setup part
 logger = setup_logging(__name__)
@@ -34,9 +34,19 @@ def read_root():
 
 @app.get("/health", response_model=APIResponse)
 def health_check():
-    logger.debug("Health check")
-
-    return APIResponse(status="success", message="Service is active.")
+    logger.debug("Health check: Verifying Qdrant connection")
+    try:
+        client = get_qdrant_client()
+        client.get_collections()
+        return APIResponse(status="success", message="Service and Qdrant are active.")
+    except Exception as e:
+        logger.error(
+            f"Health check failed: Qdrant service is unavailable {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Qdrant service is currently unavailable or unreachable.",
+        )
 
 
 @app.post(

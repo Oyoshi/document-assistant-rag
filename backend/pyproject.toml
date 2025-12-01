@@ -16,6 +16,7 @@ langchain-community = "^0.4.1"
 qdrant-client = "^1.16.1"
 pypdf = "^6.4.0"
 python-multipart = "^0.0.20"
+langchain-qdrant = "^1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=4.5.0,<5.0.0"

@@ -1,9 +1,9 @@
 import os
 from typing import List
 
-from langchain_community.vectorstores import Qdrant
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
+from langchain_qdrant import Qdrant
 from logic.logging_config import setup_logging
 from qdrant_client import QdrantClient
 
@@ -18,7 +18,6 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 
 def get_qdrant_client():
-    # Używamy portu gRPC (6334)
     return QdrantClient(
         host=QDRANT_HOST, port=int(QDRANT_PORT), prefer_grpc=True, timeout=10
     )
