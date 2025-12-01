@@ -55,3 +55,28 @@ def store_documents_in_qdrant(
         force_recreate=False,
     )
     return len(chunks)
+
+
+def delete_collection(collection_name: str = COLLECTION_NAME) -> bool:
+    logger.warning(f"Attempting to delete collection: {collection_name}")
+    try:
+        client = get_qdrant_client()
+        collections = client.get_collections().collections
+
+        if collection_name not in collections:
+            logger.info(
+                f"Collection '{collection_name}' does not exist - skipping deletion"
+            )
+            return True
+
+        result = client.delete_collection(collection_name=collection_name)
+        if result:
+            logger.info(f"Collection '{collection_name}' successfully deleted")
+            return True
+        return False
+
+    except Exception as e:
+        logger.error(
+            f"Error deleting collection '{collection_name}': {e}", exc_info=True
+        )
+        raise RuntimeError(f"Failed to delete Qdrant collection: {e}")

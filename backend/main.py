@@ -11,7 +11,11 @@ from logic.models import (
     SourceDetail,
 )
 from logic.rag_chain import setup_rag_chain
-from logic.vector_store import get_qdrant_client, store_documents_in_qdrant
+from logic.vector_store import (
+    delete_collection,
+    get_qdrant_client,
+    store_documents_in_qdrant,
+)
 
 # App setup part
 logger = setup_logging(__name__)
@@ -118,7 +122,8 @@ async def upload_document(file: UploadFile = File(...)):
 def handle_query(request: QueryRequest):
     if rag_chain is None:
         logger.error(
-            "RAG chain has not been initialized correctly on startup - Qdrant or OpenAI connection failed"
+            "RAG chain has not been initialized correctly on startup - Qdrant or OpenAI connection failed",
+            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -159,4 +164,28 @@ def handle_query(request: QueryRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred during RAG response generation: {e}",
+        )
+
+
+@app.delete("/documents", response_model=APIResponse)
+def delete_all_documents():
+    logger.warning("Received request to DELETE ALL DOCUMENTS (reset Qdrant collection)")
+    try:
+        success = delete_collection()
+        if success:
+            return APIResponse(
+                status="success",
+                message="All documents deleted. Qdrant collection successfully reset.",
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Collection deletion failed for unknown reason",
+            )
+
+    except RuntimeError as e:
+        logger.error(f"Failed to reset database: {e.args[0]}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database reset error: {e}",
         )
