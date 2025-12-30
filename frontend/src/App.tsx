@@ -35,22 +35,23 @@ function App() {
         </div>
       </header>
 
-      <main className="px-12 flex justify-center items-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 flex flex-col gap-6 h-full overflow-hidden">
-            <div className="flex-shrink-0">
-                <FileUploader onUploadSuccess={handleUploadSuccess} />
-            </div>
+      <main className="w-full min-h-screen p-4 md:p-6">
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full h-full">
+    <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="flex-shrink-0">
+        <FileUploader onUploadSuccess={handleUploadSuccess} />
+      </div>
 
-            <div className="flex-1 overflow-hidden">
-                <FileList files={uploadedFiles} onClearFiles={handleClearFiles} />
-            </div>
-          </div>
-          <div className="lg:col-span-8 h-full flex flex-col">
-            <ChatInterface />
-          </div>
-        </div>
-      </main>
+      <div className="flex-1 overflow-hidden">
+        <FileList files={uploadedFiles} onClearFiles={handleClearFiles} />
+      </div>
+    </div>
+    <div className="lg:col-span-8 flex flex-col h-full min-h-[500px]">
+      <ChatInterface />
+    </div>
+
+  </div>
+</main>
       <Toaster />
     </div>
   );
