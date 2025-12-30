@@ -2,6 +2,8 @@
 
 An intelligent document assistant that allows you to upload PDF/Text files and chat with them using Retrieval-Augmented Generation (RAG). Powered by **FastAPI**, **React**, **Qdrant**, and **Google Gemini**.
 
+![demo](demo.gif)
+
 ---
 
 ## 🚀 Key Features
@@ -19,7 +21,7 @@ An intelligent document assistant that allows you to upload PDF/Text files and c
 The application follows a modern RAG architecture:
 
 ```mermaid
-graph LR
+graph TD
     A[User] -->|Uploads Files| B(Frontend - React)
     B -->|API Request| C(Backend - FastAPI)
     C -->|Process & Chunk| D[Document Loader]
@@ -39,7 +41,7 @@ graph LR
 
 ## 🛠️ Environment Variables
 
-Create a `.env` file in the root directory based on `.env.example`:
+Create a `.env` file in the root directory based on [.env.example](.env.example):
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
