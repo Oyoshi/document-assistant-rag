@@ -1,7 +1,7 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from logic.logging_config import setup_logging
 from logic.vector_store import get_vector_store
 
@@ -30,7 +30,7 @@ def setup_rag_chain():
         vector_store = get_vector_store()
         # Retrieve 3 most similar fragments
         retriever = vector_store.as_retriever(search_kwargs={"k": 3})
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.1)
 
         rag_prompt = ChatPromptTemplate.from_template(RAG_PROMPT_TEMPLATE)
 

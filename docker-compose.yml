@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile
     container_name: rag-frontend
     ports:
-      - "${FRONTEND_PORT:-5137}:80"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
       - backend
     restart: always

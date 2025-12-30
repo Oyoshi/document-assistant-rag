@@ -2,7 +2,7 @@ import os
 from typing import List
 
 from langchain_core.documents import Document
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_qdrant import Qdrant
 from logic.logging_config import setup_logging
 from qdrant_client import QdrantClient
@@ -13,8 +13,8 @@ QDRANT_HOST = os.environ.get("QDRANT_HOST", "qdrant")
 QDRANT_PORT = os.environ.get("QDRANT_GRPC_PORT", "6334")
 COLLECTION_NAME = "rag_documents_collection"
 
-# LangChain automatically read OPENAI_API_KEY via os.environ
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+# LangChain automatically read GOOGLE_API_KEY via os.environ
+embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
 
 
 def get_qdrant_client():
@@ -47,13 +47,23 @@ def store_documents_in_qdrant(
     # 1. Generate vectors via 'embeddings' object
     # 2. Create new collection (or reusing old one if exists - force_recreate is falsy for this reason)
     # 3. Fill vectors and metadata
-    Qdrant.from_documents(
-        chunks,
-        embeddings,
+    if not client.collection_exists(collection_name):
+        from qdrant_client.http import models
+
+        logger.info(f"Collection '{collection_name}' does not exist. Creating it...")
+        client.create_collection(
+            collection_name=collection_name,
+            vectors_config=models.VectorParams(
+                size=768, distance=models.Distance.COSINE
+            ),
+        )
+
+    qdrant = Qdrant(
         client=client,
+        embeddings=embeddings,
         collection_name=collection_name,
-        force_recreate=False,
     )
+    qdrant.add_documents(chunks)
     return len(chunks)
 
 

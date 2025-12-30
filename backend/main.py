@@ -122,12 +122,12 @@ async def upload_document(file: UploadFile = File(...)):
 def handle_query(request: QueryRequest):
     if rag_chain is None:
         logger.error(
-            "RAG chain has not been initialized correctly on startup - Qdrant or OpenAI connection failed",
+            "RAG chain has not been initialized correctly on startup - Qdrant or Gemini connection failed",
             exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="RAG service is currently unavailable. Check Qdrant and OpenAI connections.",
+            detail="RAG service is currently unavailable. Check Qdrant and Gemini connections.",
         )
     logger.info(f"RAG request received: {request.query[:50]}...")
 
