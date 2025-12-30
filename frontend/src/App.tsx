@@ -3,6 +3,7 @@ import { FileUploader } from "./components/FileUploader";
 import { FileList, type UploadedFile } from "./components/FileList";
 import { ChatInterface } from "./components/ChatInterface";
 import { Toaster } from "@/components/ui/sonner";
+import { logger } from "@/lib/logger";
 
 function App() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -17,10 +18,10 @@ function App() {
       if (response.ok) {
         setUploadedFiles([]);
       } else {
-        console.error("Failed to delete documents");
+        logger.error("Failed to delete documents");
       }
     } catch (error) {
-        console.error("Error clearing documents:", error);
+        logger.error("Error clearing documents:", error instanceof Error ? error.message : "Unknown error");
     }
   };
 

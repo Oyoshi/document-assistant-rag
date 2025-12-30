@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Upload, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export function FileUploader({ onUploadSuccess }: { onUploadSuccess: (filename: string, chunks: number) => void }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -60,11 +61,12 @@ export function FileUploader({ onUploadSuccess }: { onUploadSuccess: (filename: 
       loading: "Uploading file...",
       success: (data) => {
         onUploadSuccess(data.filename, data.chunks_count);
-        return `File "${data.filename}" uploaded successfully (${data.chunks_count} chunks).`;
+        return `File "${data.filename}" uploaded successfully (${data.chunks_count} chunks)`;
       },
       error: (err) => {
+        logger.error("Failed to upload file", err instanceof Error ? err.message : "Unknown error");
         setIsUploading(false);
-        return err.message;
+        return "Something went wrong while uploading the file";
       },
     });
 

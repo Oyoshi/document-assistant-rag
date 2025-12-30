@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { logger } from "@/lib/logger";
 
 interface SourceDetail {
   file: string;
@@ -52,7 +53,7 @@ export function ChatInterface() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response");
+        throw new Error("Failed to post query");
       }
 
       const data = await response.json();
@@ -66,6 +67,7 @@ export function ChatInterface() {
         }
       ]);
     } catch (error) {
+      logger.error(error instanceof Error ? error.message : "Unknown error");
       setMessages(prev => [
         ...prev,
         { role: "assistant", content: "Sorry, I encountered an error answering your question. Please ensure the backend is running and files are uploaded." }
