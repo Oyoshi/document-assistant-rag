@@ -3,7 +3,7 @@ from typing import List
 
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_qdrant import Qdrant
+from langchain_qdrant import QdrantVectorStore
 from logic.logging_config import setup_logging
 from qdrant_client import QdrantClient
 
@@ -26,9 +26,9 @@ def get_qdrant_client():
 def get_vector_store():
     client = get_qdrant_client()
 
-    vector_store = Qdrant(
+    vector_store = QdrantVectorStore(
         client=client,
-        embeddings=embeddings,
+        embedding=embeddings,
         collection_name=COLLECTION_NAME,
     )
     return vector_store
@@ -58,9 +58,9 @@ def store_documents_in_qdrant(
             ),
         )
 
-    qdrant = Qdrant(
+    qdrant = QdrantVectorStore(
         client=client,
-        embeddings=embeddings,
+        embedding=embeddings,
         collection_name=collection_name,
     )
     qdrant.add_documents(chunks)
