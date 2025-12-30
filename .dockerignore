@@ -1,0 +1,12 @@
+node_modules
+__pycache__
+.git
+.env
+.env.*
+!.env.example
+dist
+venv
+.DS_Store
+.idea
+.vscode
+coverage
