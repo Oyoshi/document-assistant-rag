@@ -2,7 +2,8 @@
 
 An intelligent document assistant that allows you to upload PDF/Text files and chat with them using Retrieval-Augmented Generation (RAG). Powered by **FastAPI**, **React**, **Qdrant**, and **Google Gemini**.
 
-![demo](demo.gif)
+![Demo Upload Files](demo_upload.mp4)
+![Demo Question](demo_questions.mp4)
 
 ---
 
