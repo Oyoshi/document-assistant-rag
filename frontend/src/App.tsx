@@ -4,6 +4,8 @@ import { FileList, type UploadedFile } from "./components/FileList";
 import { ChatInterface } from "./components/ChatInterface";
 import { Toaster } from "@/components/ui/sonner";
 import { logger } from "@/lib/logger";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ModeToggler } from "@/components/ModeToggler";
 
 function App() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -26,12 +28,14 @@ function App() {
   };
 
   return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="mx-auto py-4 px-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold tracking-tight">RAG Document Assistant</h1>
             </div>
+            <ModeToggler />
         </div>
       </header>
 
@@ -54,6 +58,7 @@ function App() {
 </main>
       <Toaster />
     </div>
+    </ThemeProvider>
   );
 }
 
