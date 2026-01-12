@@ -23,6 +23,8 @@ lerna-debug.log*
 /frontend/dist
 /frontend/dist-ssr
 *.local
+/frontend/storybook-static
+/frontend/test-results
 
 # Editor
 .vscode/*
